@@ -53,10 +53,13 @@ SpriteAlien naveEt[qtdEtsLinha][qtdEtsColuna];
 SpriteTiro tiro;
 SpriteTiro tiroAlien;
 Sprite explosao;
+Sprite vida;
 int explodindo = 0;
 int timerAlienTiro = 10;
+int vidaContagem = 5;
 
-bool testaColisao(Shader shader, glm::vec3 tiroPos, SpriteAlien aliens[qtdEtsLinha][qtdEtsColuna]);
+bool testaColisaoTiroUsuarioNaveEt(Shader shader, glm::vec3 tiroPos, SpriteAlien aliens[qtdEtsLinha][qtdEtsColuna]);
+bool testaColisaoTiroEtNaveUsuario(glm::vec3 tiroPos, glm::vec3 naveUsuarioPos);
 
 // Função MAIN
 int main()
@@ -104,12 +107,6 @@ int main()
 	int texID3 = setupTexture("../../Textures/characters/PNG/Nave/alien3.png", sprWidthAlien3, sprHeightAlien3);
 	int texID4 = setupTexture("../../Textures/characters/PNG/Nave/alien4.png", sprWidthAlien4, sprHeightAlien4);
 
-	int sprWidthTiroA, sprHeightTiroA;
-	int texIDTiroA = setupTexture("../../Textures/characters/PNG/Nave/tiroAlien.png", sprWidthTiroA, sprHeightTiroA);
-
-	int sprWidthTiro, sprHeightTiro;
-	int texIDTiro = setupTexture("../../Textures/characters/PNG/Nave/tiroNave.png", sprWidthTiro, sprHeightTiro);
-
 	// Criando a instância de nosso objeto sprite do Personagem
 	naveUsuario.initialize(1, 1);
 	naveUsuario.setPosition(glm::vec3(400.0, 200.0, 0.0));
@@ -154,6 +151,11 @@ int main()
 		naveEt[3][i].morreu = false;
 	}
 
+	int sprWidthTiroA, sprHeightTiroA;
+	int texIDTiroA = setupTexture("../../Textures/characters/PNG/Nave/tiroAlien.png", sprWidthTiroA, sprHeightTiroA);
+
+	int sprWidthTiro, sprHeightTiro;
+	int texIDTiro = setupTexture("../../Textures/characters/PNG/Nave/tiroNave.png", sprWidthTiro, sprHeightTiro);
 	tiro.initialize(1, 1);
 	tiro.setPosition(glm::vec3(-50.0, -50.0, 0.0));
 	tiro.setDimensions(glm::vec3(sprWidthTiro / 1 * 4.0, sprHeightTiro * 4.0, 1.0));
@@ -176,6 +178,14 @@ int main()
 	explosao.setShader(&shader);
 	explosao.setTexID(texIDExplosao);
 
+	int sprWidthVida, sprHeightVida;
+	int texIDVida = setupTexture("../../Textures/characters/PNG/Nave/vida.png", sprWidthVida, sprHeightVida);
+	vida.initialize(1, 6);
+	vida.setPosition(glm::vec3(100.0, 100.0, 0.0));
+	vida.setDimensions(glm::vec3(sprWidthVida / 6 * 4.0, sprHeightVida * 4.0, 1.0));
+	vida.setShader(&shader);
+	vida.setTexID(texIDVida);
+	//vida.update();
 	//Cria a matriz de projeção paralela ortogáfica
 	glm::mat4 projection = glm::mat4(1); //matriz identidade
 	projection = glm::ortho(0.0, 800.0, 0.0, 800.0, -1.0, 1.0);
@@ -212,6 +222,7 @@ int main()
 		// Dimensiona a viewport
 		glViewport(0, 0, width, height);
 
+		vida.draw();
 		naveUsuario.update();
 		naveUsuario.draw();
 		if (explodindo > 0) {
@@ -221,8 +232,14 @@ int main()
 			if (explodindo == 0)
 				Sprite explosao;
 		}
-		if (tiro.getAtivo() && testaColisao(shader, tiro.getPosition(), naveEt))
+		if (tiro.getAtivo() && testaColisaoTiroUsuarioNaveEt(shader, tiro.getPosition(), naveEt))
 			tiro.setAtivo(false);
+		if (tiroAlien.getAtivo() && testaColisaoTiroEtNaveUsuario(tiroAlien.getPosition(), naveUsuario.getPosition())) {
+			vida.update();
+			tiroAlien.setAtivo(false);
+			vidaContagem--;
+		}
+
 		for (int j = 0; j < qtdEtsLinha; j++) {
 			if (naveEt[j][0].alterouDirecao) {
 				for (int i = 0; i < qtdEtsColuna; i++) {
@@ -293,7 +310,7 @@ int main()
 }
 
 
-bool testaColisao(Shader shader, glm::vec3 tiroPos, SpriteAlien aliens[qtdEtsLinha][qtdEtsColuna]) {
+bool testaColisaoTiroUsuarioNaveEt(Shader shader, glm::vec3 tiroPos, SpriteAlien aliens[qtdEtsLinha][qtdEtsColuna]) {
 	for (int j = 0; j < qtdEtsLinha; j++) {
 		for (int i = 0; i < qtdEtsColuna; i++)
 		{
@@ -309,6 +326,12 @@ bool testaColisao(Shader shader, glm::vec3 tiroPos, SpriteAlien aliens[qtdEtsLin
 	}
 	return false;
 }
+
+
+bool testaColisaoTiroEtNaveUsuario(glm::vec3 tiroPos, glm::vec3 naveUsuarioPos) {
+	return (abs(abs(naveUsuarioPos.x) - abs(tiroPos.x)) < 16 && abs(abs(naveUsuarioPos.y) - abs(tiroPos.y)) < 16);
+}
+
 
 // Função de callback de teclado - só pode ter uma instância (deve ser estática se
 // estiver dentro de uma classe) - É chamada sempre que uma tecla for pressionada
