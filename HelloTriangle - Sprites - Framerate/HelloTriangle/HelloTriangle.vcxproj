@@ -131,6 +131,7 @@
     <ClInclude Include="Enum.h" />
     <ClInclude Include="Sprite.h" />
     <ClInclude Include="SpriteAlien.h" />
+    <ClInclude Include="SpriteBloco.h" />
     <ClInclude Include="SpriteTiro.h" />
     <ClInclude Include="Timer.h" />
   </ItemGroup>
