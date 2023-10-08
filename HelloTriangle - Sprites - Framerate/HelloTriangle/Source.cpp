@@ -1,0 +1,463 @@
+/* Hello Triangle - código adaptado de https://learnopengl.com/#!Getting-started/Hello-Triangle 
+ *
+ * Adaptado por Rossana Baptista Queiroz
+ * para a disciplina de Processamento Gráfico - Unisinos
+ * Versão inicial: 7/4/2017
+ * Última atualização em 14/08/2023
+ *
+ */
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <assert.h>
+
+using namespace std;
+
+// GLM
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+//STB_IMAGE
+#include <stb_image.h>
+
+//Classe para manipulação dos shaders
+#include "Shader.h"
+
+//Classe Sprite 
+#include "Sprite.h"
+#include "SpriteAlien.h"
+#include "SpriteTiro.h"
+
+//Classe Timer
+#include "Timer.h"
+
+// Protótipo da função de callback de teclado
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+
+// Protótipos das funções
+int setupGeometry();
+int setupTexture(string filePath, int &width, int &height);
+int setupSprite();
+
+// Dimensões da janela (pode ser alterado em tempo de execução)
+const GLuint WIDTH = 800, HEIGHT = 800;
+const int qtdEtsColuna = 6;
+const int qtdEtsLinha = 4;
+Sprite naveUsuario;
+SpriteAlien naveEt[qtdEtsLinha][qtdEtsColuna];
+SpriteTiro tiro;
+Sprite explosao;
+int explodindo = 0;
+int timerAlienTiro = 10;
+
+bool testaColisao(Shader shader, glm::vec3 tiroPos, SpriteAlien aliens[qtdEtsLinha][qtdEtsColuna]);
+
+// Função MAIN
+int main()
+{
+	// Inicialização da GLFW
+	glfwInit();
+
+	// Criação da janela GLFW
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Galaxy Attackers", nullptr, nullptr);
+	glfwMakeContextCurrent(window);
+
+	// Fazendo o registro da função de callback para a janela GLFW
+	glfwSetKeyCallback(window, key_callback);
+
+	// GLAD: carrega todos os ponteiros d funções da OpenGL
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+	}
+
+	// Obtendo as informações de versão
+	const GLubyte* renderer = glGetString(GL_RENDERER); /* get renderer string */
+	const GLubyte* version = glGetString(GL_VERSION); /* version as a string */
+	cout << "Renderer: " << renderer << endl;
+	cout << "OpenGL version supported " << version << endl;
+
+	// Definindo as dimensões da viewport com as mesmas dimensões da janela da aplicação
+	int width, height;
+
+	// Compilando e buildando o programa de shader
+	/*Shader shaderinit("../shaders/helloTriangle.vs", "../shaders/helloTriangle.fs");
+	shader = shaderinit;*/
+	Shader shader("../shaders/helloTriangle.vs", "../shaders/helloTriangle.fs");
+	shader.Use();
+
+	//Fazendo a leitura da textura do personagem
+	int sprWidth, sprHeight;
+	int texID = setupTexture("../../Textures/characters/PNG/Nave/nave.png", sprWidth, sprHeight);
+
+	int sprWidthAlien1, sprHeightAlien1, sprWidthAlien2, sprHeightAlien2, sprWidthAlien3, sprHeightAlien3, sprWidthAlien4, sprHeightAlien4;
+	int texID1 = setupTexture("../../Textures/characters/PNG/Nave/alien1.png", sprWidthAlien1, sprHeightAlien1);
+	int texID2 = setupTexture("../../Textures/characters/PNG/Nave/alien2.png", sprWidthAlien2, sprHeightAlien2);
+	int texID3 = setupTexture("../../Textures/characters/PNG/Nave/alien3.png", sprWidthAlien3, sprHeightAlien3);
+	int texID4 = setupTexture("../../Textures/characters/PNG/Nave/alien4.png", sprWidthAlien4, sprHeightAlien4);
+
+	int sprWidthTiro, sprHeightTiro;
+	int texIDTiro = setupTexture("../../Textures/characters/PNG/Nave/tiroNave.png", sprWidthTiro, sprHeightTiro);
+
+	// Criando a instância de nosso objeto sprite do Personagem
+	naveUsuario.initialize(1, 1);
+	naveUsuario.setPosition(glm::vec3(400.0, 200.0, 0.0));
+	naveUsuario.setDimensions(glm::vec3(sprWidth / 1 * 4.0, sprHeight * 4.0, 1.0));
+	naveUsuario.setShader(&shader);
+	naveUsuario.setTexID(texID);
+
+	for (int i = 0; i < qtdEtsColuna; i++) {
+		naveEt[0][i].initialize(1, 2);
+		naveEt[0][i].setPosition(glm::vec3(300.0 + (i * 50.0), 400.0, 0.0));
+		naveEt[0][i].setDimensions(glm::vec3(sprWidthAlien1 / 2 * 4.0, sprHeightAlien1 * 4.0, 1.0));
+		naveEt[0][i].setShader(&shader);
+		naveEt[0][i].setTexID(texID1);
+		naveEt[0][i].setState(0);
+		naveEt[0][i].morreu = false;
+	}
+	for (int i = 0; i < qtdEtsColuna; i++) {
+		naveEt[1][i].initialize(1, 2);
+		naveEt[1][i].setPosition(glm::vec3(300.0 + (i * 50.0), 450.0, 0.0));
+		naveEt[1][i].setDimensions(glm::vec3(sprWidthAlien2 / 2 * 4.0, sprHeightAlien2 * 4.0, 1.0));
+		naveEt[1][i].setShader(&shader);
+		naveEt[1][i].setTexID(texID2);
+		naveEt[1][i].setState(0);
+		naveEt[1][i].morreu = false;
+	}
+	for (int i = 0; i < qtdEtsColuna; i++) {
+		naveEt[2][i].initialize(1, 2);
+		naveEt[2][i].setPosition(glm::vec3(300.0 + (i * 50.0), 500.0, 0.0));
+		naveEt[2][i].setDimensions(glm::vec3(sprWidthAlien3 / 2 * 4.0, sprHeightAlien3 * 4.0, 1.0));
+		naveEt[2][i].setShader(&shader);
+		naveEt[2][i].setTexID(texID3);
+		naveEt[2][i].setState(0);
+		naveEt[2][i].morreu = false;
+	}
+	for (int i = 0; i < qtdEtsColuna; i++) {
+		naveEt[3][i].initialize(1, 2);
+		naveEt[3][i].setPosition(glm::vec3(300.0 + (i * 50.0), 550.0, 0.0));
+		naveEt[3][i].setDimensions(glm::vec3(sprWidthAlien4 / 2 * 4.0, sprHeightAlien4 * 4.0, 1.0));
+		naveEt[3][i].setShader(&shader);
+		naveEt[3][i].setTexID(texID4);
+		naveEt[3][i].setState(0);
+		naveEt[3][i].morreu = false;
+	}
+
+	tiro.initialize(1, 1);
+	tiro.setPosition(glm::vec3(-50.0, -50.0, 0.0));
+	tiro.setDimensions(glm::vec3(sprWidthTiro / 1 * 4.0, sprHeightTiro * 4.0, 1.0));
+	tiro.setShader(&shader);
+	tiro.setTexID(texIDTiro);
+
+	int sprHeightExp, sprWidthExp;
+	int texIDExplosao = setupTexture("../../Textures/characters/PNG/Nave/explosao.png", sprWidthExp, sprHeightExp);
+	explosao.initialize(1, 4);
+	explosao.setPosition(glm::vec3(-50.0, -50.0, 0.0));
+	explosao.setDimensions(glm::vec3(sprWidthExp / 4 * 4.0, sprHeightExp * 4.0, 1.0));
+	explosao.setShader(&shader);
+	explosao.setTexID(texIDExplosao);
+
+	//Cria a matriz de projeção paralela ortogáfica
+	glm::mat4 projection = glm::mat4(1); //matriz identidade
+	projection = glm::ortho(0.0, 800.0, 0.0, 800.0, -1.0, 1.0);
+	
+	shader.setMat4("projection", glm::value_ptr(projection));
+	shader.setInt("texbuffer", 0);
+
+	glActiveTexture(GL_TEXTURE0);
+
+	//Habilitando a transparência
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	//Habilitando o teste de profundidade
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_ALWAYS);
+
+	Timer timer;
+
+	// Loop da aplicação - "game loop"
+	while (!glfwWindowShouldClose(window))
+	{
+		timer.start();
+
+		// Checa se houveram eventos de input (key pressed, mouse moved etc.) e chama as funções de callback correspondentes
+		glfwPollEvents();
+
+		// Limpa o buffer de cor
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //cor de fundo
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+		// Recuperando o tamanho da janela da aplicação
+		glfwGetFramebufferSize(window, &width, &height);
+		// Dimensiona a viewport
+		glViewport(0, 0, width, height);
+
+		naveUsuario.update();
+		naveUsuario.draw();
+		if (explodindo > 0) {
+			explosao.update();
+			explosao.draw();
+			explodindo--;
+			if (explodindo == 0)
+				Sprite explosao;
+		}
+		if (tiro.getAtivo() && testaColisao(shader, tiro.getPosition(), naveEt))
+			tiro.setAtivo(false);
+		for (int j = 0; j < qtdEtsLinha; j++) {
+			if (naveEt[j][0].alterouDirecao) {
+				for (int i = 0; i < qtdEtsColuna; i++) {
+					naveEt[j][i].movendoAEsquerda = naveEt[j][0].movendoAEsquerda;
+				}
+				naveEt[j][0].alterouDirecao = false;
+			}
+			else if (naveEt[j][qtdEtsColuna-1].alterouDirecao) {
+				for (int i = 0; i < qtdEtsColuna; i++) {
+					naveEt[j][i].movendoAEsquerda = naveEt[j][qtdEtsColuna-1].movendoAEsquerda;
+				}
+				naveEt[j][qtdEtsColuna-1].alterouDirecao = false;
+			}
+		}
+		for (int j = 0; j < qtdEtsLinha; j++) {
+			for (int i = 0; i < qtdEtsColuna; i++) {
+				naveEt[j][i].update();
+				naveEt[j][i].move();
+				if (!naveEt[j][i].morreu)
+					naveEt[j][i].draw();
+			}
+		}
+		//-------------------------------------------------------------
+		//--------------------------------------------------------------
+		if (tiro.getAtivo()) {
+			tiro.update();
+			tiro.draw();
+			tiro.moveUp();
+			if (tiro.getPosition().y > 800)
+				tiro.setAtivo(false);
+		}
+		//--------------------------------------------------------------
+		if (timerAlienTiro == 0) {
+
+		}
+		timerAlienTiro--;
+		//--------------------------------------------------------------
+		timer.finish();
+		double waitingTime = timer.calcWaitingTime(12, timer.getElapsedTimeMs());
+		if (waitingTime)
+			std::this_thread::sleep_for(std::chrono::milliseconds((int)waitingTime));
+
+		// Troca os buffers da tela
+		glfwSwapBuffers(window);
+	}
+
+	// Finaliza a execução da GLFW, limpando os recursos alocados por ela
+	glfwTerminate();
+	return 0;
+}
+
+
+bool testaColisao(Shader shader, glm::vec3 tiroPos, SpriteAlien aliens[qtdEtsLinha][qtdEtsColuna]) {
+	for (int j = 0; j < qtdEtsLinha; j++) {
+		for (int i = 0; i < qtdEtsColuna; i++)
+		{
+			glm::vec3 posicaoAlien = aliens[j][i].getPosition();
+			if (!aliens[j][i].morreu && abs(abs(posicaoAlien.x) - abs(tiroPos.x)) < 16 && abs(abs(posicaoAlien.y) - abs(tiroPos.y)) < 16) {
+				aliens[j][i].morreu = true;
+
+				explosao.setPosition(aliens[j][i].getPosition());
+				explodindo = 4;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+// Função de callback de teclado - só pode ter uma instância (deve ser estática se
+// estiver dentro de uma classe) - É chamada sempre que uma tecla for pressionada
+// ou solta via GLFW
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+{
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	if ( key == GLFW_KEY_A || key == GLFW_KEY_LEFT )
+	{
+		naveUsuario.setState(MOVING);
+		naveUsuario.moveLeft();
+	}
+	else if ( key == GLFW_KEY_D || key == GLFW_KEY_RIGHT )
+	{
+		naveUsuario.setState(MOVING);
+		naveUsuario.moveRight();
+	}
+	if (action == GLFW_RELEASE) //soltou a tecla
+	{
+		naveUsuario.setState(IDLE);
+	}
+
+	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+		glm::vec3 tiroPosicao = tiro.getPosition();
+		if (!tiro.getAtivo() || tiroPosicao.x < 0 || tiroPosicao.x > 800 || tiroPosicao.y < 0 || tiroPosicao.y > 800) {
+			glm::vec3 navePosicao = naveUsuario.getPosition();
+			tiro.setPosition(glm::vec3(navePosicao.x, navePosicao.y + 4.0 * (8.0), navePosicao.z));
+			tiro.moveUp();
+			tiro.setAtivo(true);
+		}
+	}
+}
+
+// Esta função está bastante harcoded - objetivo é criar os buffers que armazenam a 
+// geometria de um triângulo
+// Apenas atributo coordenada nos vértices
+// 1 VBO com as coordenadas, VAO com apenas 1 ponteiro para atributo
+// A função retorna o identificador do VAO
+int setupGeometry()
+{
+	// Aqui setamos as coordenadas x, y e z do triângulo e as armazenamos de forma
+	// sequencial, já visando mandar para o VBO (Vertex Buffer Objects)
+	// Cada atributo do vértice (coordenada, cores, coordenadas de textura, normal, etc)
+	// Pode ser arazenado em um VBO único ou em VBOs separados
+	GLfloat vertices[] = {
+		//x   y     z    s    t   
+		-0.5, -0.5, 0.0, 0.0, 0.0,//v0
+		 0.5, -0.5, 0.0, 1.0, 0.0,//v1
+ 		 0.0,  0.5, 0.0, 0.5, 1.0 //v2 
+	};
+
+	GLuint VBO, VAO;
+	//Geração do identificador do VBO
+	glGenBuffers(1, &VBO);
+	//Faz a conexão (vincula) do buffer como um buffer de array
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	//Envia os dados do array de floats para o buffer da OpenGl
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	//Geração do identificador do VAO (Vertex Array Object)
+	glGenVertexArrays(1, &VAO);
+	// Vincula (bind) o VAO primeiro, e em seguida  conecta e seta o(s) buffer(s) de vértices
+	// e os ponteiros para os atributos 
+	glBindVertexArray(VAO);
+	//Para cada atributo do vertice, criamos um "AttribPointer" (ponteiro para o atributo), indicando: 
+	// Localização no shader * (a localização dos atributos devem ser correspondentes no layout especificado no vertex shader)
+	// Numero de valores que o atributo tem (por ex, 3 coordenadas xyz) 
+	// Tipo do dado
+	// Se está normalizado (entre zero e um)
+	// Tamanho em bytes 
+	// Deslocamento a partir do byte zero 
+
+	//Atributo posição
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	//Atributo coordenada de textura 
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	// Observe que isso é permitido, a chamada para glVertexAttribPointer registrou o VBO como o objeto de buffer de vértice 
+	// atualmente vinculado - para que depois possamos desvincular com segurança
+	glBindBuffer(GL_ARRAY_BUFFER, 0); 
+
+	// Desvincula o VAO (é uma boa prática desvincular qualquer buffer ou array para evitar bugs medonhos)
+	glBindVertexArray(0); 
+
+	return VAO;
+}
+
+int setupTexture(string filePath, int &width, int &height)
+{
+	GLuint texID;
+	// Geração do identificador do buffer
+	glGenTextures(1, &texID);
+	glBindTexture(GL_TEXTURE_2D, texID);
+
+	//Configurando parâmetro de wrapping da textura em s e t
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	
+	//Configurando o parâmetro de filtering de magnificação e minificação da textura
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+	
+	int nrChannels;
+	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels,0);
+	if (data)
+	{
+		if (nrChannels == 3)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		stbi_image_free(data);
+	}
+	else
+	{
+		cout << "Erro ao ler a textura!" << endl;
+		return -1;
+	}
+	
+	return texID;
+}
+
+int setupSprite()
+{
+	// Aqui setamos as coordenadas x, y e z do triângulo e as armazenamos de forma
+	// sequencial, já visando mandar para o VBO (Vertex Buffer Objects)
+	// Cada atributo do vértice (coordenada, cores, coordenadas de textura, normal, etc)
+	// Pode ser arazenado em um VBO único ou em VBOs separados
+	GLfloat vertices[] = {
+		//Primeiro Triângulo
+		//x   y     z    s    t   
+		-0.5, -0.5, 0.0, 0.0, 0.0, //v0
+		 0.5,  0.5, 0.0, 1.0, 1.0, //v1
+		-0.5,  0.5, 0.0, 0.0, 1.0, //v2
+
+		//Segundo Triângulo
+		-0.5, -0.5, 0.0, 0.0, 0.0, //v0
+		 0.5, -0.5, 0.0, 1.0, 0.0, //v3 
+		 0.5,  0.5, 0.0, 1.0, 1.0, //v1
+	};
+
+	GLuint VBO, VAO;
+	//Geração do identificador do VBO
+	glGenBuffers(1, &VBO);
+	//Faz a conexão (vincula) do buffer como um buffer de array
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	//Envia os dados do array de floats para o buffer da OpenGl
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	//Geração do identificador do VAO (Vertex Array Object)
+	glGenVertexArrays(1, &VAO);
+	// Vincula (bind) o VAO primeiro, e em seguida  conecta e seta o(s) buffer(s) de vértices
+	// e os ponteiros para os atributos 
+	glBindVertexArray(VAO);
+	//Para cada atributo do vertice, criamos um "AttribPointer" (ponteiro para o atributo), indicando: 
+	// Localização no shader * (a localização dos atributos devem ser correspondentes no layout especificado no vertex shader)
+	// Numero de valores que o atributo tem (por ex, 3 coordenadas xyz) 
+	// Tipo do dado
+	// Se está normalizado (entre zero e um)
+	// Tamanho em bytes 
+	// Deslocamento a partir do byte zero 
+
+	//Atributo posição
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	//Atributo coordenada de textura 
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	// Observe que isso é permitido, a chamada para glVertexAttribPointer registrou o VBO como o objeto de buffer de vértice 
+	// atualmente vinculado - para que depois possamos desvincular com segurança
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Desvincula o VAO (é uma boa prática desvincular qualquer buffer ou array para evitar bugs medonhos)
+	glBindVertexArray(0);
+
+	return VAO;
+}
+
+
