@@ -104,11 +104,12 @@ int main()
 	int texID3 = setupTexture("../../Textures/characters/PNG/Nave/alien3.png", sprWidthAlien3, sprHeightAlien3);
 	int texID4 = setupTexture("../../Textures/characters/PNG/Nave/alien4.png", sprWidthAlien4, sprHeightAlien4);
 
+	int sprWidthTiroA, sprHeightTiroA;
+	int texIDTiroA = setupTexture("../../Textures/characters/PNG/Nave/tiroAlien.png", sprWidthTiroA, sprHeightTiroA);
+
 	int sprWidthTiro, sprHeightTiro;
 	int texIDTiro = setupTexture("../../Textures/characters/PNG/Nave/tiroNave.png", sprWidthTiro, sprHeightTiro);
 
-	int sprWidthTiroA, sprHeightTiroA;
-	int texIDTiroA = setupTexture("../../Textures/characters/PNG/Nave/bloco.png", sprWidthTiroA, sprHeightTiroA);
 	// Criando a instância de nosso objeto sprite do Personagem
 	naveUsuario.initialize(1, 1);
 	naveUsuario.setPosition(glm::vec3(400.0, 200.0, 0.0));
@@ -262,7 +263,7 @@ int main()
 		}
 		//--------------------------------------------------------------
 		timerAlienTiro--;
-		if (timerAlienTiro == 0) {
+		if (timerAlienTiro <= 0 && !tiroAlien.getAtivo()) {
 			while (1) {
 				int yEt = rand() % 4;
 				int xEt = rand() % 6;
