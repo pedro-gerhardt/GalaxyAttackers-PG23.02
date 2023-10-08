@@ -46,6 +46,8 @@ int explodindo = 0;
 int timerAlienTiro = 10;
 int vidaContagem = 5;
 
+GameState gameState = PLAYING;
+
 Sprite naveUsuario;
 SpriteAlien naveEt[qtdEtsLinha][qtdEtsColuna];
 SpriteTiro tiro;
@@ -54,6 +56,8 @@ Sprite explosao;
 Sprite vida;
 Sprite bloco1;
 Sprite bloco2;
+Sprite gameOverScreen;
+Sprite victoryScreen;
 
 // Protótipo da função de callback de teclado
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -203,11 +207,21 @@ int main()
 	//vida.setTexID(texIDVida);
 	//vida.setState(IDLE);
 
+	int sprWidthGameOverScreen, sprHeightGameOverScreen;
+	int texIDGameOverScreen = setupTexture("../../Textures/characters/PNG/Nave/gameover.png", sprWidthGameOverScreen, sprHeightGameOverScreen);
+	gameOverScreen.initialize(1, 1);
+	gameOverScreen.setPosition(glm::vec3(400.0, 400.0, 0.0));
+	gameOverScreen.setDimensions(glm::vec3(sprWidthGameOverScreen * 0.8, sprHeightGameOverScreen * 0.8, 1.0));
+	gameOverScreen.setShader(&shader);
+	gameOverScreen.setTexID(texIDGameOverScreen);
 
-
-
-
-
+	int sprWidthVictoryScreen, sprHeightVictoryScreen;
+	int texIDVictoryScreen = setupTexture("../../Textures/characters/PNG/Nave/victory.png", sprWidthVictoryScreen, sprHeightVictoryScreen);
+	victoryScreen.initialize(1, 1);
+	victoryScreen.setPosition(glm::vec3(400.0, 400.0, 0.0));
+	victoryScreen.setDimensions(glm::vec3(sprWidthVictoryScreen * 0.8, sprHeightVictoryScreen * 0.8, 1.0));
+	victoryScreen.setShader(&shader);
+	victoryScreen.setTexID(texIDVictoryScreen);
 
 	//Cria a matriz de projeção paralela ortogáfica
 	glm::mat4 projection = glm::mat4(1); //matriz identidade
@@ -268,6 +282,10 @@ int main()
 			vidaContagem--;
 		}
 
+		if (vidaContagem == 0) {
+			gameState = GAME_OVER;
+		}
+
 		for (int j = 0; j < qtdEtsLinha; j++) {
 			if (naveEt[j][0].getAlterouDirecao()) {
 				for (int i = 0; i < qtdEtsColuna; i++) {
@@ -326,9 +344,34 @@ int main()
 		if (waitingTime)
 			std::this_thread::sleep_for(std::chrono::milliseconds((int)waitingTime));
 
+
+		if (gameState != PLAYING) {
+			break;
+		}
+
 		// Troca os buffers da tela
 		glfwSwapBuffers(window);
 	}
+
+	switch (gameState) {
+		case GAME_OVER:
+			gameOverScreen.update();
+			gameOverScreen.draw();
+			glfwSwapBuffers(window);
+			std::this_thread::sleep_for(std::chrono::milliseconds((int) 5000));
+			break;
+
+		case VICTORY:
+			victoryScreen.update();
+			victoryScreen.draw();
+			glfwSwapBuffers(window);
+			std::this_thread::sleep_for(std::chrono::milliseconds((int)5000));
+			break;
+
+		default:
+			break;
+	}
+	
 
 	// Finaliza a execução da GLFW, limpando os recursos alocados por ela
 	glfwTerminate();
@@ -380,6 +423,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (action == GLFW_RELEASE) //soltou a tecla
 	{
 		naveUsuario.setState(IDLE);
+	}
+
+	if (key == GLFW_KEY_G) {
+		gameState = VICTORY;
+	}
+
+	if (key == GLFW_KEY_P) {
+		gameState = GAME_OVER;
 	}
 
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
