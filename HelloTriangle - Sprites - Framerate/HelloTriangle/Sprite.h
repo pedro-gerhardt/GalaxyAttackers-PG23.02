@@ -30,7 +30,7 @@ public:
 	void moveLeft();
 	void moveRight();
 
-protected:
+private:
 	GLuint VAO; //identificador do buffer de geometria
 	GLuint texID; //identificador do buffer de textura
 	

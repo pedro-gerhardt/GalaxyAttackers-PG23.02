@@ -81,6 +81,7 @@ void Sprite::initialize(int nAnimations, int nFrames)
 void Sprite::update()
 {
 	//Conecta com o VAO
+	glBindVertexArray(0);
 	glBindVertexArray(VAO);
 
 	//Altera a matriz a transformação
@@ -105,6 +106,8 @@ void Sprite::update()
 void Sprite::draw()
 {
 	//Conecta com o VAO
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindVertexArray(0);
 	glBindVertexArray(VAO);
 
 	//Conecta a textura do sprite

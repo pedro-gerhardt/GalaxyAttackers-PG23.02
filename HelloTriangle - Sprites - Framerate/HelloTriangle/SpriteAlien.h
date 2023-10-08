@@ -14,8 +14,19 @@ class SpriteAlien : public Sprite {
 public:
 	void move();
 
+	inline int getVelAlien() { return this->velAlien; }
+
+	inline bool getMorreu() { return this->morreu; }
+	inline void setMorreu(bool morreu) { this->morreu = morreu; }
+
+	inline bool getAlterouDirecao() { return this->alterouDirecao; }
+	inline void setAlterouDirecao(bool alterouDirecao) { this->alterouDirecao = alterouDirecao; }
+
+	inline bool getMovendoEsquerda() { return this->movendoAEsquerda; }
+	inline void setMovendoEsquerda(bool movendo) { this->movendoAEsquerda = movendo; }
+private:
 	bool movendoAEsquerda;
 	bool alterouDirecao;
 	bool morreu;
-protected:
+	int velAlien = 5.0;;
 };

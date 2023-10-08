@@ -4,16 +4,17 @@
 void SpriteAlien::move()
 {
 	int padding = 100;
+	glm::vec3 pos = getPosition();
 	if (movendoAEsquerda)
-		position.x += vel * 2;
+		setPosition(glm::vec3(pos.x + velAlien * 2, pos.y, pos.z));
 	else
-		position.x -= vel * 2;
+		setPosition(glm::vec3(pos.x - velAlien * 2, pos.y, pos.z));
 
-	if (position.x > (800 - padding)) {
+	if (pos.x > (800 - padding)) {
 		alterouDirecao = true;
 		movendoAEsquerda = false;
 	}
-	if (position.x < (0 + padding)) {
+	if (pos.x < (0 + padding)) {
 		alterouDirecao = true;
 		movendoAEsquerda = true;
 	}

@@ -3,8 +3,9 @@
 
 void SpriteTiro::move()
 {
+	glm::vec3 pos = getPosition();
 	if (alien)
-		position.y -= velTiro;
-	else 
-		position.y += velTiro;
+		setPosition(glm::vec3(pos.x, pos.y - velTiro, pos.z));
+	else
+		setPosition(glm::vec3(pos.x, pos.y + velTiro, pos.z));
 }

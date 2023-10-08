@@ -36,27 +36,32 @@ using namespace std;
 //Classe Timer
 #include "Timer.h"
 
-// Protótipo da função de callback de teclado
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
-
-// Protótipos das funções
-int setupGeometry();
-int setupTexture(string filePath, int &width, int &height);
-int setupSprite();
 
 // Dimensões da janela (pode ser alterado em tempo de execução)
 const GLuint WIDTH = 800, HEIGHT = 800;
 const int qtdEtsColuna = 6;
 const int qtdEtsLinha = 4;
+
+int explodindo = 0;
+int timerAlienTiro = 10;
+int vidaContagem = 5;
+
 Sprite naveUsuario;
 SpriteAlien naveEt[qtdEtsLinha][qtdEtsColuna];
 SpriteTiro tiro;
 SpriteTiro tiroAlien;
 Sprite explosao;
 Sprite vida;
-int explodindo = 0;
-int timerAlienTiro = 10;
-int vidaContagem = 5;
+Sprite bloco1;
+Sprite bloco2;
+
+// Protótipo da função de callback de teclado
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+
+// Protótipos das funções
+int setupGeometry();
+int setupTexture(string filePath, int& width, int& height);
+int setupSprite();
 
 bool testaColisaoTiroUsuarioNaveEt(Shader shader, glm::vec3 tiroPos, SpriteAlien aliens[qtdEtsLinha][qtdEtsColuna]);
 bool testaColisaoTiroEtNaveUsuario(glm::vec3 tiroPos, glm::vec3 naveUsuarioPos);
@@ -96,6 +101,8 @@ int main()
 	shader = shaderinit;*/
 	Shader shader("../shaders/helloTriangle.vs", "../shaders/helloTriangle.fs");
 	shader.Use();
+	/*Shader shader2("../shaders/helloTriangle.vs", "../shaders/helloTriangle.fs");
+	shader2.Use();*/
 
 	//Fazendo a leitura da textura do personagem
 	int sprWidth, sprHeight;
@@ -121,7 +128,7 @@ int main()
 		naveEt[0][i].setShader(&shader);
 		naveEt[0][i].setTexID(texID1);
 		naveEt[0][i].setState(0);
-		naveEt[0][i].morreu = false;
+		naveEt[0][i].setMorreu(false);
 	}
 	for (int i = 0; i < qtdEtsColuna; i++) {
 		naveEt[1][i].initialize(1, 2);
@@ -130,7 +137,7 @@ int main()
 		naveEt[1][i].setShader(&shader);
 		naveEt[1][i].setTexID(texID2);
 		naveEt[1][i].setState(0);
-		naveEt[1][i].morreu = false;
+		naveEt[1][i].setMorreu(false);
 	}
 	for (int i = 0; i < qtdEtsColuna; i++) {
 		naveEt[2][i].initialize(1, 2);
@@ -139,7 +146,7 @@ int main()
 		naveEt[2][i].setShader(&shader);
 		naveEt[2][i].setTexID(texID3);
 		naveEt[2][i].setState(0);
-		naveEt[2][i].morreu = false;
+		naveEt[2][i].setMorreu(false);
 	}
 	for (int i = 0; i < qtdEtsColuna; i++) {
 		naveEt[3][i].initialize(1, 2);
@@ -148,7 +155,7 @@ int main()
 		naveEt[3][i].setShader(&shader);
 		naveEt[3][i].setTexID(texID4);
 		naveEt[3][i].setState(0);
-		naveEt[3][i].morreu = false;
+		naveEt[3][i].setMorreu(false);
 	}
 
 	int sprWidthTiroA, sprHeightTiroA;
@@ -181,17 +188,36 @@ int main()
 	int sprWidthVida, sprHeightVida;
 	int texIDVida = setupTexture("../../Textures/characters/PNG/Nave/vida.png", sprWidthVida, sprHeightVida);
 	vida.initialize(1, 6);
-	vida.setPosition(glm::vec3(100.0, 100.0, 0.0));
-	vida.setDimensions(glm::vec3(sprWidthVida / 6 * 4.0, sprHeightVida * 4.0, 1.0));
+	vida.setPosition(glm::vec3(100.0, 700.0, 0.0));
+	vida.setDimensions(glm::vec3(sprWidthVida / 6 * 2.0, sprHeightVida * 2.0, 1.0));
 	vida.setShader(&shader);
 	vida.setTexID(texIDVida);
-	//vida.update();
+	vida.setState(IDLE);
+
+	//int sprWidthBloco1, sprHeightBloco1;
+	//int texIDBloco1 = setupTexture("../../Textures/characters/PNG/Nave/bloco.png", sprWidthBloco1, sprHeightBloco1);
+	//vida.initialize(1, 6);
+	//vida.setPosition(glm::vec3(100.0, 700.0, 0.0));
+	//vida.setDimensions(glm::vec3(sprWidthVida / 6 * 2.0, sprHeightVida * 2.0, 1.0));
+	//vida.setShader(&shader);
+	//vida.setTexID(texIDVida);
+	//vida.setState(IDLE);
+
+
+
+
+
+
+
 	//Cria a matriz de projeção paralela ortogáfica
 	glm::mat4 projection = glm::mat4(1); //matriz identidade
 	projection = glm::ortho(0.0, 800.0, 0.0, 800.0, -1.0, 1.0);
 	
 	shader.setMat4("projection", glm::value_ptr(projection));
 	shader.setInt("texbuffer", 0);
+
+	//shader2.setMat4("projection", glm::value_ptr(projection));
+	//shader2.setInt("texbuffer", 0);
 
 	glActiveTexture(GL_TEXTURE0);
 
@@ -222,9 +248,11 @@ int main()
 		// Dimensiona a viewport
 		glViewport(0, 0, width, height);
 
-		vida.draw();
 		naveUsuario.update();
 		naveUsuario.draw();
+		vida.update();
+		vida.draw();
+		vida.setState(IDLE);
 		if (explodindo > 0) {
 			explosao.update();
 			explosao.draw();
@@ -235,35 +263,34 @@ int main()
 		if (tiro.getAtivo() && testaColisaoTiroUsuarioNaveEt(shader, tiro.getPosition(), naveEt))
 			tiro.setAtivo(false);
 		if (tiroAlien.getAtivo() && testaColisaoTiroEtNaveUsuario(tiroAlien.getPosition(), naveUsuario.getPosition())) {
-			vida.update();
+			vida.setState(MOVING);
 			tiroAlien.setAtivo(false);
 			vidaContagem--;
 		}
 
 		for (int j = 0; j < qtdEtsLinha; j++) {
-			if (naveEt[j][0].alterouDirecao) {
+			if (naveEt[j][0].getAlterouDirecao()) {
 				for (int i = 0; i < qtdEtsColuna; i++) {
-					naveEt[j][i].movendoAEsquerda = naveEt[j][0].movendoAEsquerda;
+					naveEt[j][i].setMovendoEsquerda(naveEt[j][0].getMovendoEsquerda());
 				}
-				naveEt[j][0].alterouDirecao = false;
+				naveEt[j][0].setAlterouDirecao(false);
 			}
-			else if (naveEt[j][qtdEtsColuna-1].alterouDirecao) {
+			else if (naveEt[j][qtdEtsColuna-1].getAlterouDirecao()) {
 				for (int i = 0; i < qtdEtsColuna; i++) {
-					naveEt[j][i].movendoAEsquerda = naveEt[j][qtdEtsColuna-1].movendoAEsquerda;
+					naveEt[j][i].setMovendoEsquerda( naveEt[j][qtdEtsColuna-1].getMovendoEsquerda());
 				}
-				naveEt[j][qtdEtsColuna-1].alterouDirecao = false;
+				naveEt[j][qtdEtsColuna-1].setAlterouDirecao(false);
 			}
 		}
 		for (int j = 0; j < qtdEtsLinha; j++) {
 			for (int i = 0; i < qtdEtsColuna; i++) {
 				naveEt[j][i].update();
 				naveEt[j][i].move();
-				if (!naveEt[j][i].morreu)
+				if (!naveEt[j][i].getMorreu())
 					naveEt[j][i].draw();
 			}
 		}
-		//-------------------------------------------------------------
-		//--------------------------------------------------------------
+
 		if (tiro.getAtivo()) {
 			tiro.update();
 			tiro.draw();
@@ -278,13 +305,13 @@ int main()
 			if (tiroAlien.getPosition().y < 0)
 				tiroAlien.setAtivo(false);
 		}
-		//--------------------------------------------------------------
+
 		timerAlienTiro--;
 		if (timerAlienTiro <= 0 && !tiroAlien.getAtivo()) {
 			while (1) {
 				int yEt = rand() % 4;
 				int xEt = rand() % 6;
-				if (!naveEt[yEt][xEt].morreu) {
+				if (!naveEt[yEt][xEt].getMorreu()) {
 					glm::vec3 et = naveEt[yEt][xEt].getPosition();
 					tiroAlien.setPosition(glm::vec3(et.x, et.y, et.z));
 					tiroAlien.move();
@@ -294,7 +321,6 @@ int main()
 			}
 			timerAlienTiro = 10;
 		}
-		//--------------------------------------------------------------
 		timer.finish();
 		double waitingTime = timer.calcWaitingTime(12, timer.getElapsedTimeMs());
 		if (waitingTime)
@@ -315,8 +341,8 @@ bool testaColisaoTiroUsuarioNaveEt(Shader shader, glm::vec3 tiroPos, SpriteAlien
 		for (int i = 0; i < qtdEtsColuna; i++)
 		{
 			glm::vec3 posicaoAlien = aliens[j][i].getPosition();
-			if (!aliens[j][i].morreu && abs(abs(posicaoAlien.x) - abs(tiroPos.x)) < 16 && abs(abs(posicaoAlien.y) - abs(tiroPos.y)) < 16) {
-				aliens[j][i].morreu = true;
+			if (!aliens[j][i].getMorreu() && abs(abs(posicaoAlien.x) - abs(tiroPos.x)) < 16 && abs(abs(posicaoAlien.y) - abs(tiroPos.y)) < 16) {
+				aliens[j][i].setMorreu(true);
 
 				explosao.setPosition(aliens[j][i].getPosition());
 				explodindo = 4;
