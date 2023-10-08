@@ -15,9 +15,13 @@ public:
 	inline bool getAtivo() { return this->ativo; }
 	inline void setAtivo(bool ativo) { this->ativo = ativo; }
 
-	void moveUp();
+	inline bool getAlien() { return this->alien; }
+	inline void setAlien(bool alien) { this->alien = alien; }
+
+	void move();
 
 protected:
 	int velTiro = 15.0;
 	bool ativo = false;
+	bool alien = false;
 };

@@ -12,6 +12,9 @@
 #include <vector>
 #include <assert.h>
 
+#include <stdio.h>      /* printf, scanf, puts, NULL */
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       
 using namespace std;
 
 // GLM
@@ -48,6 +51,7 @@ const int qtdEtsLinha = 4;
 Sprite naveUsuario;
 SpriteAlien naveEt[qtdEtsLinha][qtdEtsColuna];
 SpriteTiro tiro;
+SpriteTiro tiroAlien;
 Sprite explosao;
 int explodindo = 0;
 int timerAlienTiro = 10;
@@ -72,6 +76,8 @@ int main()
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 	}
+
+	srand(time(NULL));
 
 	// Obtendo as informações de versão
 	const GLubyte* renderer = glGetString(GL_RENDERER); /* get renderer string */
@@ -101,6 +107,8 @@ int main()
 	int sprWidthTiro, sprHeightTiro;
 	int texIDTiro = setupTexture("../../Textures/characters/PNG/Nave/tiroNave.png", sprWidthTiro, sprHeightTiro);
 
+	int sprWidthTiroA, sprHeightTiroA;
+	int texIDTiroA = setupTexture("../../Textures/characters/PNG/Nave/bloco.png", sprWidthTiroA, sprHeightTiroA);
 	// Criando a instância de nosso objeto sprite do Personagem
 	naveUsuario.initialize(1, 1);
 	naveUsuario.setPosition(glm::vec3(400.0, 200.0, 0.0));
@@ -150,6 +158,14 @@ int main()
 	tiro.setDimensions(glm::vec3(sprWidthTiro / 1 * 4.0, sprHeightTiro * 4.0, 1.0));
 	tiro.setShader(&shader);
 	tiro.setTexID(texIDTiro);
+	tiro.setAlien(false);
+
+	tiroAlien.initialize(1, 2);
+	tiroAlien.setPosition(glm::vec3(-50.0, -50.0, 0.0));
+	tiroAlien.setDimensions(glm::vec3(sprWidthTiroA / 2 * 4.0, sprHeightTiroA * 4.0, 1.0));
+	tiroAlien.setShader(&shader);
+	tiroAlien.setTexID(texIDTiroA);
+	tiroAlien.setAlien(true);
 
 	int sprHeightExp, sprWidthExp;
 	int texIDExplosao = setupTexture("../../Textures/characters/PNG/Nave/explosao.png", sprWidthExp, sprHeightExp);
@@ -233,15 +249,33 @@ int main()
 		if (tiro.getAtivo()) {
 			tiro.update();
 			tiro.draw();
-			tiro.moveUp();
+			tiro.move();
 			if (tiro.getPosition().y > 800)
 				tiro.setAtivo(false);
 		}
-		//--------------------------------------------------------------
-		if (timerAlienTiro == 0) {
-
+		if (tiroAlien.getAtivo()) {
+			tiroAlien.update();
+			tiroAlien.draw();
+			tiroAlien.move();
+			if (tiroAlien.getPosition().y < 0)
+				tiroAlien.setAtivo(false);
 		}
+		//--------------------------------------------------------------
 		timerAlienTiro--;
+		if (timerAlienTiro == 0) {
+			while (1) {
+				int yEt = rand() % 4;
+				int xEt = rand() % 6;
+				if (!naveEt[yEt][xEt].morreu) {
+					glm::vec3 et = naveEt[yEt][xEt].getPosition();
+					tiroAlien.setPosition(glm::vec3(et.x, et.y, et.z));
+					tiroAlien.move();
+					tiroAlien.setAtivo(true);
+					break;
+				}
+			}
+			timerAlienTiro = 10;
+		}
 		//--------------------------------------------------------------
 		timer.finish();
 		double waitingTime = timer.calcWaitingTime(12, timer.getElapsedTimeMs());
@@ -303,7 +337,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		if (!tiro.getAtivo() || tiroPosicao.x < 0 || tiroPosicao.x > 800 || tiroPosicao.y < 0 || tiroPosicao.y > 800) {
 			glm::vec3 navePosicao = naveUsuario.getPosition();
 			tiro.setPosition(glm::vec3(navePosicao.x, navePosicao.y + 4.0 * (8.0), navePosicao.z));
-			tiro.moveUp();
+			tiro.move();
 			tiro.setAtivo(true);
 		}
 	}
@@ -382,7 +416,7 @@ int setupTexture(string filePath, int &width, int &height)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
 	
 	int nrChannels;
-	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels,0);
+	unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 4);
 	if (data)
 	{
 		if (nrChannels == 3)

@@ -1,7 +1,10 @@
 #include "SpriteTiro.h"
 
 
-void SpriteTiro::moveUp()
+void SpriteTiro::move()
 {
-	position.y += velTiro;
+	if (alien)
+		position.y -= velTiro;
+	else 
+		position.y += velTiro;
 }
