@@ -414,8 +414,8 @@ void diparaTiroAlien() {
 	timerAlienTiro--;
 	if (timerAlienTiro <= 0 && !tiroAlien.getAtivo()) {
 		while (1) {
-			int yEt = rand() % 4;
-			int xEt = rand() % 6;
+			int yEt = rand() % qtdEtsLinha;
+			int xEt = rand() % qtdEtsColuna;
 			if (!naveEt[yEt][xEt].getMorreu()) {
 				glm::vec3 et = naveEt[yEt][xEt].getPosition();
 				tiroAlien.setPosition(glm::vec3(et.x, et.y, et.z));
