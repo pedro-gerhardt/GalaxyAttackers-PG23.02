@@ -78,6 +78,7 @@ void testaAliensLateral();
 void testaTiroEmBloco();
 void testaTiroEmAlien();
 void testaTiroEmNave();
+void inicializaSprites(Shader *shader);
 // Função MAIN
 int main()
 {
@@ -112,131 +113,7 @@ int main()
 	Shader shader("../shaders/helloTriangle.vs", "../shaders/helloTriangle.fs");
 	shader.Use();
 
-	//Fazendo a leitura da textura do personagem
-	int sprWidth, sprHeight;
-	int texID = setupTexture("../../Textures/characters/PNG/Nave/nave.png", sprWidth, sprHeight);
-
-	int sprWidthAlien1, sprHeightAlien1, sprWidthAlien2, sprHeightAlien2, sprWidthAlien3, sprHeightAlien3, sprWidthAlien4, sprHeightAlien4;
-	int texID1 = setupTexture("../../Textures/characters/PNG/Nave/alien1.png", sprWidthAlien1, sprHeightAlien1);
-	int texID2 = setupTexture("../../Textures/characters/PNG/Nave/alien2.png", sprWidthAlien2, sprHeightAlien2);
-	int texID3 = setupTexture("../../Textures/characters/PNG/Nave/alien3.png", sprWidthAlien3, sprHeightAlien3);
-	int texID4 = setupTexture("../../Textures/characters/PNG/Nave/alien4.png", sprWidthAlien4, sprHeightAlien4);
-
-	// Criando a instância de nosso objeto sprite do Personagem
-	naveUsuario.initialize(1, 1);
-	naveUsuario.setPosition(glm::vec3(400.0, 150.0, 0.0));
-	naveUsuario.setDimensions(glm::vec3(sprWidth / 1 * 4.0, sprHeight * 4.0, 1.0));
-	naveUsuario.setShader(&shader);
-	naveUsuario.setTexID(texID);
-
-	for (int i = 0; i < qtdEtsColuna; i++) {
-		naveEt[0][i].initialize(1, 2);
-		naveEt[0][i].setPosition(glm::vec3(300.0 + (i * 50.0), 500.0, 0.0));
-		naveEt[0][i].setDimensions(glm::vec3(sprWidthAlien1 / 2 * 4.0, sprHeightAlien1 * 4.0, 1.0));
-		naveEt[0][i].setShader(&shader);
-		naveEt[0][i].setTexID(texID1);
-		naveEt[0][i].setState(0);
-		naveEt[0][i].setMorreu(false);
-	}
-	for (int i = 0; i < qtdEtsColuna; i++) {
-		naveEt[1][i].initialize(1, 2);
-		naveEt[1][i].setPosition(glm::vec3(300.0 + (i * 50.0), 550.0, 0.0));
-		naveEt[1][i].setDimensions(glm::vec3(sprWidthAlien2 / 2 * 4.0, sprHeightAlien2 * 4.0, 1.0));
-		naveEt[1][i].setShader(&shader);
-		naveEt[1][i].setTexID(texID2);
-		naveEt[1][i].setState(0);
-		naveEt[1][i].setMorreu(false);
-	}
-	for (int i = 0; i < qtdEtsColuna; i++) {
-		naveEt[2][i].initialize(1, 2);
-		naveEt[2][i].setPosition(glm::vec3(300.0 + (i * 50.0), 600.0, 0.0));
-		naveEt[2][i].setDimensions(glm::vec3(sprWidthAlien3 / 2 * 4.0, sprHeightAlien3 * 4.0, 1.0));
-		naveEt[2][i].setShader(&shader);
-		naveEt[2][i].setTexID(texID3);
-		naveEt[2][i].setState(0);
-		naveEt[2][i].setMorreu(false);
-	}
-	for (int i = 0; i < qtdEtsColuna; i++) {
-		naveEt[3][i].initialize(1, 2);
-		naveEt[3][i].setPosition(glm::vec3(300.0 + (i * 50.0), 650.0, 0.0));
-		naveEt[3][i].setDimensions(glm::vec3(sprWidthAlien4 / 2 * 4.0, sprHeightAlien4 * 4.0, 1.0));
-		naveEt[3][i].setShader(&shader);
-		naveEt[3][i].setTexID(texID4);
-		naveEt[3][i].setState(0);
-		naveEt[3][i].setMorreu(false);
-	}
-
-	int sprWidthTiroA, sprHeightTiroA;
-	int texIDTiroA = setupTexture("../../Textures/characters/PNG/Nave/tiroAlien.png", sprWidthTiroA, sprHeightTiroA);
-
-	int sprWidthTiro, sprHeightTiro;
-	int texIDTiro = setupTexture("../../Textures/characters/PNG/Nave/tiroNave.png", sprWidthTiro, sprHeightTiro);
-	tiro.initialize(1, 1);
-	tiro.setPosition(glm::vec3(-50.0, -50.0, 0.0));
-	tiro.setDimensions(glm::vec3(sprWidthTiro / 1 * 4.0, sprHeightTiro * 4.0, 1.0));
-	tiro.setShader(&shader);
-	tiro.setTexID(texIDTiro);
-	tiro.setAlien(false);
-
-	tiroAlien.initialize(1, 2);
-	tiroAlien.setPosition(glm::vec3(-50.0, -50.0, 0.0));
-	tiroAlien.setDimensions(glm::vec3(sprWidthTiroA / 2 * 4.0, sprHeightTiroA * 4.0, 1.0));
-	tiroAlien.setShader(&shader);
-	tiroAlien.setTexID(texIDTiroA);
-	tiroAlien.setAlien(true);
-
-	int sprHeightExp, sprWidthExp;
-	int texIDExplosao = setupTexture("../../Textures/characters/PNG/Nave/explosao.png", sprWidthExp, sprHeightExp);
-	explosao.initialize(1, 4);
-	explosao.setPosition(glm::vec3(-50.0, -50.0, 0.0));
-	explosao.setDimensions(glm::vec3(sprWidthExp / 4 * 4.0, sprHeightExp * 4.0, 1.0));
-	explosao.setShader(&shader);
-	explosao.setTexID(texIDExplosao);
-
-	int sprWidthVida, sprHeightVida;
-	int texIDVida = setupTexture("../../Textures/characters/PNG/Nave/vida.png", sprWidthVida, sprHeightVida);
-	vida.initialize(1, 6);
-	vida.setPosition(glm::vec3(100.0, 700.0, 0.0));
-	vida.setDimensions(glm::vec3(sprWidthVida / 6 * 2.0, sprHeightVida * 2.0, 1.0));
-	vida.setShader(&shader);
-	vida.setTexID(texIDVida);
-	vida.setState(IDLE);
-
-	int sprWidthBloco, sprHeightBloco;
-	int texIDBloco = setupTexture("../../Textures/characters/PNG/Nave/bloco.png", sprWidthBloco, sprHeightBloco);
-	for (int i = 0; i < qtdBlocos; i++) {
-		blocos[i].initialize(1, 4);
-		blocos[i].setPosition(glm::vec3(200.0 + (i * 200.0), 300.0, 0.0));
-		blocos[i].setDimensions(glm::vec3(sprWidthBloco / 4 * 4.0, sprHeightBloco * 4.0, 1.0));
-		blocos[i].setShader(&shader);
-		blocos[i].setTexID(texIDBloco);
-		blocos[i].setState(IDLE);
-		blocos[i].setVida(4);
-	}
-
-	int sprWidthGameOverScreen, sprHeightGameOverScreen;
-	int texIDGameOverScreen = setupTexture("../../Textures/characters/PNG/Nave/gameover.png", sprWidthGameOverScreen, sprHeightGameOverScreen);
-	gameOverScreen.initialize(1, 1);
-	gameOverScreen.setPosition(glm::vec3(400.0, 400.0, 0.0));
-	gameOverScreen.setDimensions(glm::vec3(sprWidthGameOverScreen * 0.8, sprHeightGameOverScreen * 0.8, 1.0));
-	gameOverScreen.setShader(&shader);
-	gameOverScreen.setTexID(texIDGameOverScreen);
-
-	int sprWidthVictoryScreen, sprHeightVictoryScreen;
-	int texIDVictoryScreen = setupTexture("../../Textures/characters/PNG/Nave/victory.png", sprWidthVictoryScreen, sprHeightVictoryScreen);
-	victoryScreen.initialize(1, 1);
-	victoryScreen.setPosition(glm::vec3(400.0, 400.0, 0.0));
-	victoryScreen.setDimensions(glm::vec3(sprWidthVictoryScreen * 0.8, sprHeightVictoryScreen * 0.8, 1.0));
-	victoryScreen.setShader(&shader);
-	victoryScreen.setTexID(texIDVictoryScreen);
-
-	int sprWidthStartScreen, sprHeightStartScreen;
-	int texIDStartScreen = setupTexture("../../Textures/characters/PNG/Nave/start.png", sprWidthStartScreen, sprHeightStartScreen);
-	startScreen.initialize(1, 1);
-	startScreen.setPosition(glm::vec3(400.0, 400.0, 0.0));
-	startScreen.setDimensions(glm::vec3(sprWidthStartScreen * 0.8, sprHeightStartScreen * 0.8, 1.0));
-	startScreen.setShader(&shader);
-	startScreen.setTexID(texIDStartScreen);
+	inicializaSprites(&shader);
 
 	//Cria a matriz de projeção paralela ortogáfica
 	glm::mat4 projection = glm::mat4(1); //matriz identidade
@@ -271,11 +148,33 @@ int main()
 		glfwGetFramebufferSize(window, &width, &height);
 		glViewport(0, 0, width, height);
 
-		if (gameState == STARTING) {
-			startScreen.update();
-			startScreen.draw();
-			glfwSwapBuffers(window);
-			continue;
+		switch (gameState) {
+			case STARTING:
+				startScreen.update();
+				startScreen.draw();
+				glfwSwapBuffers(window);
+				continue;
+
+			case GAME_OVER:
+				gameOverScreen.update();
+				gameOverScreen.draw();
+				glfwSwapBuffers(window);
+				std::this_thread::sleep_for(std::chrono::milliseconds((int)3000));
+				gameState = STARTING;
+				inicializaSprites(&shader);
+				break;
+
+			case VICTORY:
+				victoryScreen.update();
+				victoryScreen.draw();
+				glfwSwapBuffers(window);
+				std::this_thread::sleep_for(std::chrono::milliseconds((int)3000));
+				gameState = STARTING;
+				inicializaSprites(&shader);
+				break;
+
+			default:
+				break;
 		}
 
 		atualizaEDesenha();
@@ -296,8 +195,8 @@ int main()
 		if (testaCondicaoDerrota()) 
 			gameState = GAME_OVER;
 
-		if (gameState != PLAYING)
-			break;
+		/*if (gameState != PLAYING)
+			break;*/
 
 		timer.finish();
 		double waitingTime = timer.calcWaitingTime(12, timer.getElapsedTimeMs());
@@ -308,29 +207,141 @@ int main()
 		glfwSwapBuffers(window);
 	}
 
-	switch (gameState) {
-		case GAME_OVER:
-			gameOverScreen.update();
-			gameOverScreen.draw();
-			glfwSwapBuffers(window);
-			std::this_thread::sleep_for(std::chrono::milliseconds((int)5000));
-			break;
-
-		case VICTORY:
-			victoryScreen.update();
-			victoryScreen.draw();
-			glfwSwapBuffers(window);
-			std::this_thread::sleep_for(std::chrono::milliseconds((int)5000));
-			break;
-
-		default:
-			break;
-	}
 
 	// Finaliza a execução da GLFW, limpando os recursos alocados por ela
 	glfwTerminate();
 	return 0;
 }
+
+void inicializaSprites(Shader *shader) {
+
+	//Fazendo a leitura da textura do personagem
+	int sprWidth, sprHeight;
+	int texID = setupTexture("../../Textures/characters/PNG/Nave/nave.png", sprWidth, sprHeight);
+
+	int sprWidthAlien1, sprHeightAlien1, sprWidthAlien2, sprHeightAlien2, sprWidthAlien3, sprHeightAlien3, sprWidthAlien4, sprHeightAlien4;
+	int texID1 = setupTexture("../../Textures/characters/PNG/Nave/alien1.png", sprWidthAlien1, sprHeightAlien1);
+	int texID2 = setupTexture("../../Textures/characters/PNG/Nave/alien2.png", sprWidthAlien2, sprHeightAlien2);
+	int texID3 = setupTexture("../../Textures/characters/PNG/Nave/alien3.png", sprWidthAlien3, sprHeightAlien3);
+	int texID4 = setupTexture("../../Textures/characters/PNG/Nave/alien4.png", sprWidthAlien4, sprHeightAlien4);
+
+	// Criando a instância de nosso objeto sprite do Personagem
+	naveUsuario.initialize(1, 1);
+	naveUsuario.setPosition(glm::vec3(400.0, 150.0, 0.0));
+	naveUsuario.setDimensions(glm::vec3(sprWidth / 1 * 4.0, sprHeight * 4.0, 1.0));
+	naveUsuario.setShader(shader);
+	naveUsuario.setTexID(texID);
+
+	for (int i = 0; i < qtdEtsColuna; i++) {
+		naveEt[0][i].initialize(1, 2);
+		naveEt[0][i].setPosition(glm::vec3(300.0 + (i * 50.0), 500.0, 0.0));
+		naveEt[0][i].setDimensions(glm::vec3(sprWidthAlien1 / 2 * 4.0, sprHeightAlien1 * 4.0, 1.0));
+		naveEt[0][i].setShader(shader);
+		naveEt[0][i].setTexID(texID1);
+		naveEt[0][i].setState(0);
+		naveEt[0][i].setMorreu(false);
+	}
+	for (int i = 0; i < qtdEtsColuna; i++) {
+		naveEt[1][i].initialize(1, 2);
+		naveEt[1][i].setPosition(glm::vec3(300.0 + (i * 50.0), 550.0, 0.0));
+		naveEt[1][i].setDimensions(glm::vec3(sprWidthAlien2 / 2 * 4.0, sprHeightAlien2 * 4.0, 1.0));
+		naveEt[1][i].setShader(shader);
+		naveEt[1][i].setTexID(texID2);
+		naveEt[1][i].setState(0);
+		naveEt[1][i].setMorreu(false);
+	}
+	for (int i = 0; i < qtdEtsColuna; i++) {
+		naveEt[2][i].initialize(1, 2);
+		naveEt[2][i].setPosition(glm::vec3(300.0 + (i * 50.0), 600.0, 0.0));
+		naveEt[2][i].setDimensions(glm::vec3(sprWidthAlien3 / 2 * 4.0, sprHeightAlien3 * 4.0, 1.0));
+		naveEt[2][i].setShader(shader);
+		naveEt[2][i].setTexID(texID3);
+		naveEt[2][i].setState(0);
+		naveEt[2][i].setMorreu(false);
+	}
+	for (int i = 0; i < qtdEtsColuna; i++) {
+		naveEt[3][i].initialize(1, 2);
+		naveEt[3][i].setPosition(glm::vec3(300.0 + (i * 50.0), 650.0, 0.0));
+		naveEt[3][i].setDimensions(glm::vec3(sprWidthAlien4 / 2 * 4.0, sprHeightAlien4 * 4.0, 1.0));
+		naveEt[3][i].setShader(shader);
+		naveEt[3][i].setTexID(texID4);
+		naveEt[3][i].setState(0);
+		naveEt[3][i].setMorreu(false);
+	}
+
+	int sprWidthTiroA, sprHeightTiroA;
+	int texIDTiroA = setupTexture("../../Textures/characters/PNG/Nave/tiroAlien.png", sprWidthTiroA, sprHeightTiroA);
+
+	int sprWidthTiro, sprHeightTiro;
+	int texIDTiro = setupTexture("../../Textures/characters/PNG/Nave/tiroNave.png", sprWidthTiro, sprHeightTiro);
+	tiro.initialize(1, 1);
+	tiro.setPosition(glm::vec3(-50.0, -50.0, 0.0));
+	tiro.setDimensions(glm::vec3(sprWidthTiro / 1 * 4.0, sprHeightTiro * 4.0, 1.0));
+	tiro.setShader(shader);
+	tiro.setTexID(texIDTiro);
+	tiro.setAlien(false);
+
+	tiroAlien.initialize(1, 2);
+	tiroAlien.setPosition(glm::vec3(-50.0, -50.0, 0.0));
+	tiroAlien.setDimensions(glm::vec3(sprWidthTiroA / 2 * 4.0, sprHeightTiroA * 4.0, 1.0));
+	tiroAlien.setShader(shader);
+	tiroAlien.setTexID(texIDTiroA);
+	tiroAlien.setAlien(true);
+
+	int sprHeightExp, sprWidthExp;
+	int texIDExplosao = setupTexture("../../Textures/characters/PNG/Nave/explosao.png", sprWidthExp, sprHeightExp);
+	explosao.initialize(1, 4);
+	explosao.setPosition(glm::vec3(-50.0, -50.0, 0.0));
+	explosao.setDimensions(glm::vec3(sprWidthExp / 4 * 4.0, sprHeightExp * 4.0, 1.0));
+	explosao.setShader(shader);
+	explosao.setTexID(texIDExplosao);
+
+	int sprWidthVida, sprHeightVida;
+	int texIDVida = setupTexture("../../Textures/characters/PNG/Nave/vida.png", sprWidthVida, sprHeightVida);
+	vida.initialize(1, 6);
+	vida.setPosition(glm::vec3(100.0, 700.0, 0.0));
+	vida.setDimensions(glm::vec3(sprWidthVida / 6 * 2.0, sprHeightVida * 2.0, 1.0));
+	vida.setShader(shader);
+	vida.setTexID(texIDVida);
+	vida.setState(IDLE);
+
+	int sprWidthBloco, sprHeightBloco;
+	int texIDBloco = setupTexture("../../Textures/characters/PNG/Nave/bloco.png", sprWidthBloco, sprHeightBloco);
+	for (int i = 0; i < qtdBlocos; i++) {
+		blocos[i].initialize(1, 4);
+		blocos[i].setPosition(glm::vec3(200.0 + (i * 200.0), 300.0, 0.0));
+		blocos[i].setDimensions(glm::vec3(sprWidthBloco / 4 * 4.0, sprHeightBloco * 4.0, 1.0));
+		blocos[i].setShader(shader);
+		blocos[i].setTexID(texIDBloco);
+		blocos[i].setState(IDLE);
+		blocos[i].setVida(4);
+	}
+
+	int sprWidthGameOverScreen, sprHeightGameOverScreen;
+	int texIDGameOverScreen = setupTexture("../../Textures/characters/PNG/Nave/gameover.png", sprWidthGameOverScreen, sprHeightGameOverScreen);
+	gameOverScreen.initialize(1, 1);
+	gameOverScreen.setPosition(glm::vec3(400.0, 400.0, 0.0));
+	gameOverScreen.setDimensions(glm::vec3(sprWidthGameOverScreen * 0.8, sprHeightGameOverScreen * 0.8, 1.0));
+	gameOverScreen.setShader(shader);
+	gameOverScreen.setTexID(texIDGameOverScreen);
+
+	int sprWidthVictoryScreen, sprHeightVictoryScreen;
+	int texIDVictoryScreen = setupTexture("../../Textures/characters/PNG/Nave/victory.png", sprWidthVictoryScreen, sprHeightVictoryScreen);
+	victoryScreen.initialize(1, 1);
+	victoryScreen.setPosition(glm::vec3(400.0, 400.0, 0.0));
+	victoryScreen.setDimensions(glm::vec3(sprWidthVictoryScreen * 0.8, sprHeightVictoryScreen * 0.8, 1.0));
+	victoryScreen.setShader(shader);
+	victoryScreen.setTexID(texIDVictoryScreen);
+
+	int sprWidthStartScreen, sprHeightStartScreen;
+	int texIDStartScreen = setupTexture("../../Textures/characters/PNG/Nave/start.png", sprWidthStartScreen, sprHeightStartScreen);
+	startScreen.initialize(1, 1);
+	startScreen.setPosition(glm::vec3(400.0, 400.0, 0.0));
+	startScreen.setDimensions(glm::vec3(sprWidthStartScreen * 0.8, sprHeightStartScreen * 0.8, 1.0));
+	startScreen.setShader(shader);
+	startScreen.setTexID(texIDStartScreen);
+}
+
 
 bool testaCondicaoVitoria() {
 	for (int j = 0; j < qtdEtsLinha; j++) {
@@ -442,7 +453,6 @@ void atualizaEDesenha() {
 		if (explodindo == 0)
 			Sprite explosao;
 	}
-
 
 	if (tiro.getAtivo()) {
 		tiro.update();
