@@ -1,4 +1,4 @@
-# Galaxy Attackers -PG 23/02
+# Galaxy Attackers - PG 23/02
  Trabalho de Grau A - Processamento Gráfico 2023/02
 
 Caso abrir o projeto em um Visual Studio, adaptar a versão da IDE utilizada. Projeto foi desenvolvido na versão Visual Studio 2022 Community.
