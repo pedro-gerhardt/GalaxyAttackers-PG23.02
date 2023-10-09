@@ -21,7 +21,7 @@ public:
 	void move();
 
 protected:
-	int velTiro = 15.0;
+	int velTiro = 30.0;
 	bool ativo = false;
 	bool alien = false;
 };

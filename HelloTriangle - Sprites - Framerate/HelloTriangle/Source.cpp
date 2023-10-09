@@ -69,6 +69,8 @@ int setupTexture(string filePath, int& width, int& height);
 int setupSprite();
 
 bool testaColisaoTiroEmObjeto(glm::vec3 tiroPos, glm::vec3 objetoPos, int offset);
+bool testaCondicaoVitoria();
+bool testaCondicaoDerrota();
 void atualizaEDesenha();
 void diparaTiroAlien();
 void testaAliensLateral();
@@ -273,7 +275,11 @@ int main()
 		
 		diparaTiroAlien();
 
-		if (vidaContagem == 0) {
+		if (testaCondicaoVitoria()) {
+			gameState = VICTORY;
+		}
+		
+		if (testaCondicaoDerrota()) {
 			gameState = GAME_OVER;
 		}
 
@@ -312,6 +318,22 @@ int main()
 	// Finaliza a execução da GLFW, limpando os recursos alocados por ela
 	glfwTerminate();
 	return 0;
+}
+
+bool testaCondicaoVitoria() {
+	for (int j = 0; j < qtdEtsLinha; j++) {
+		for (int i = 0; i < qtdEtsColuna; i++) {
+			if (!naveEt[j][i].getMorreu()) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool testaCondicaoDerrota() {
+	return vidaContagem == 0;
 }
 
 void testaTiroEmAlien() {
