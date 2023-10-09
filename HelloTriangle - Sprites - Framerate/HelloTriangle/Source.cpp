@@ -48,7 +48,7 @@ int explodindo = 0;
 int timerAlienTiro = 10;
 int vidaContagem = 5;
 
-GameState gameState = PLAYING;
+GameState gameState = STARTING;
 
 Sprite naveUsuario;
 SpriteAlien naveEt[qtdEtsLinha][qtdEtsColuna];
@@ -59,6 +59,7 @@ Sprite vida;
 SpriteBloco blocos[qtdBlocos];
 Sprite gameOverScreen;
 Sprite victoryScreen;
+Sprite startScreen;
 
 // Protótipo da função de callback de teclado
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -229,6 +230,14 @@ int main()
 	victoryScreen.setShader(&shader);
 	victoryScreen.setTexID(texIDVictoryScreen);
 
+	int sprWidthStartScreen, sprHeightStartScreen;
+	int texIDStartScreen = setupTexture("../../Textures/characters/PNG/Nave/start.png", sprWidthStartScreen, sprHeightStartScreen);
+	startScreen.initialize(1, 1);
+	startScreen.setPosition(glm::vec3(400.0, 400.0, 0.0));
+	startScreen.setDimensions(glm::vec3(sprWidthStartScreen * 0.8, sprHeightStartScreen * 0.8, 1.0));
+	startScreen.setShader(&shader);
+	startScreen.setTexID(texIDStartScreen);
+
 	//Cria a matriz de projeção paralela ortogáfica
 	glm::mat4 projection = glm::mat4(1); //matriz identidade
 	projection = glm::ortho(0.0, 800.0, 0.0, 800.0, -1.0, 1.0);
@@ -247,7 +256,6 @@ int main()
 	glDepthFunc(GL_ALWAYS);
 
 	Timer timer;
-
 	// Loop da aplicação - "game loop"
 	while (!glfwWindowShouldClose(window))
 	{
@@ -263,6 +271,13 @@ int main()
 		glfwGetFramebufferSize(window, &width, &height);
 		glViewport(0, 0, width, height);
 
+		if (gameState == STARTING) {
+			startScreen.update();
+			startScreen.draw();
+			glfwSwapBuffers(window);
+			continue;
+		}
+
 		atualizaEDesenha();
 
 		testaTiroEmAlien();
@@ -275,17 +290,14 @@ int main()
 		
 		diparaTiroAlien();
 
-		if (testaCondicaoVitoria()) {
+		if (testaCondicaoVitoria())
 			gameState = VICTORY;
-		}
 		
-		if (testaCondicaoDerrota()) {
+		if (testaCondicaoDerrota()) 
 			gameState = GAME_OVER;
-		}
 
-		if (gameState != PLAYING) {
+		if (gameState != PLAYING)
 			break;
-		}
 
 		timer.finish();
 		double waitingTime = timer.calcWaitingTime(12, timer.getElapsedTimeMs());
@@ -297,22 +309,22 @@ int main()
 	}
 
 	switch (gameState) {
-	case GAME_OVER:
-		gameOverScreen.update();
-		gameOverScreen.draw();
-		glfwSwapBuffers(window);
-		std::this_thread::sleep_for(std::chrono::milliseconds((int)5000));
-		break;
+		case GAME_OVER:
+			gameOverScreen.update();
+			gameOverScreen.draw();
+			glfwSwapBuffers(window);
+			std::this_thread::sleep_for(std::chrono::milliseconds((int)5000));
+			break;
 
-	case VICTORY:
-		victoryScreen.update();
-		victoryScreen.draw();
-		glfwSwapBuffers(window);
-		std::this_thread::sleep_for(std::chrono::milliseconds((int)5000));
-		break;
+		case VICTORY:
+			victoryScreen.update();
+			victoryScreen.draw();
+			glfwSwapBuffers(window);
+			std::this_thread::sleep_for(std::chrono::milliseconds((int)5000));
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	// Finaliza a execução da GLFW, limpando os recursos alocados por ela
@@ -466,30 +478,34 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 
-	if ( key == GLFW_KEY_A || key == GLFW_KEY_LEFT )
-	{
-		naveUsuario.setState(MOVING);
-		naveUsuario.moveLeft();
-	}
-	else if ( key == GLFW_KEY_D || key == GLFW_KEY_RIGHT )
-	{
-		naveUsuario.setState(MOVING);
-		naveUsuario.moveRight();
-	}
-	if (action == GLFW_RELEASE) //soltou a tecla
-	{
-		naveUsuario.setState(IDLE);
-	}
-
-	if (key == GLFW_KEY_G) {
-		gameState = VICTORY;
-	}
-
-	if (key == GLFW_KEY_P) {
-		gameState = GAME_OVER;
+	if (gameState == PLAYING) {
+		if ( key == GLFW_KEY_A || key == GLFW_KEY_LEFT )
+		{
+			naveUsuario.setState(MOVING);
+			naveUsuario.moveLeft();
+		}
+		else if ( key == GLFW_KEY_D || key == GLFW_KEY_RIGHT )
+		{
+			naveUsuario.setState(MOVING);
+			naveUsuario.moveRight();
+		}
+		if (action == GLFW_RELEASE) //soltou a tecla
+		{
+			naveUsuario.setState(IDLE);
+		}
+		if (key == GLFW_KEY_G) {
+			gameState = VICTORY;
+		}
+		if (key == GLFW_KEY_P) {
+			gameState = GAME_OVER;
+		}
 	}
 
 	if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+		if (gameState == STARTING) {
+			gameState = PLAYING;
+			return;
+		}
 		glm::vec3 tiroPosicao = tiro.getPosition();
 		if (!tiro.getAtivo() || tiroPosicao.x < 0 || tiroPosicao.x > 800 || tiroPosicao.y < 0 || tiroPosicao.y > 800) {
 			glm::vec3 navePosicao = naveUsuario.getPosition();
