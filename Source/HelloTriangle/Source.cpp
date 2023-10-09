@@ -194,9 +194,6 @@ int main()
 		if (testaCondicaoDerrota()) 
 			gameState = GAME_OVER;
 
-		/*if (gameState != PLAYING)
-			break;*/
-
 		timer.finish();
 		double waitingTime = timer.calcWaitingTime(12, timer.getElapsedTimeMs());
 		if (waitingTime)
