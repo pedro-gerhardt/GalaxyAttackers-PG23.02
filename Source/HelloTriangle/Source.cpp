@@ -1,9 +1,8 @@
-/* Hello Triangle - código adaptado de https://learnopengl.com/#!Getting-started/Hello-Triangle 
+/* Galaxy Attackers
  *
- * Adaptado por Rossana Baptista Queiroz
+ * Criado por Murilo Schuck, Patrick Wendling e Pedro Gerhardt
  * para a disciplina de Processamento Gráfico - Unisinos
- * Versão inicial: 7/4/2017
- * Última atualização em 14/08/2023
+ * Versão inicial: 07/10/2023
  *
  */
 
